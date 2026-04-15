@@ -1,0 +1,16 @@
+{
+  "name": "daily-word-test",
+  "version": "1.0.0",
+  "description": "Daily English word quiz by category",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "english",
+    "quiz",
+    "daily-word"
+  ],
+  "author": "",
+  "license": "MIT"
+}

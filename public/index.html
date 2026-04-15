@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daily Word Test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <p class="eyebrow">Daily Word Test</p>
+        <h1>매일 한 문제씩, 카테고리별 영어 단어 테스트</h1>
+        <p class="subtitle">
+          GRE, TOEIC, 수능 중 하나를 선택하면 오늘의 단어와 영영 풀이 4지선다가
+          나타납니다.
+        </p>
+      </header>
+
+      <main class="app-card">
+        <section class="category-panel">
+          <button class="category-button active" data-category="gre">GRE 수준</button>
+          <button class="category-button" data-category="toeic">TOEIC 수준</button>
+          <button class="category-button" data-category="csat">수능 수준</button>
+        </section>
+
+        <section class="quiz-layout">
+          <div class="word-panel">
+            <p class="panel-label">오늘의 단어</p>
+            <h2 id="word">Loading...</h2>
+            <p id="pronunciation" class="pronunciation"></p>
+            <p class="hint">
+              왼쪽 단어를 보고 오른쪽 영영사전 풀이 중 가장 알맞은 뜻을 고르세요.
+            </p>
+          </div>
+
+          <div class="options-panel">
+            <p class="panel-label">정답 선택</p>
+            <div id="options" class="options"></div>
+            <div id="result" class="result" aria-live="polite"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

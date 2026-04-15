@@ -1,0 +1,233 @@
+:root {
+  --bg-top: #f8f4ea;
+  --bg-bottom: #dfe8d3;
+  --card: rgba(255, 253, 247, 0.9);
+  --ink: #173224;
+  --muted: #516459;
+  --accent: #d66853;
+  --accent-dark: #a74332;
+  --line: rgba(23, 50, 36, 0.12);
+  --success: #1f7a4d;
+  --error: #b42318;
+  --shadow: 0 24px 60px rgba(35, 53, 38, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Noto Sans KR", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(214, 104, 83, 0.18), transparent 28%),
+    linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+}
+
+.page-shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0 64px;
+}
+
+.hero {
+  margin-bottom: 28px;
+}
+
+.eyebrow,
+.panel-label {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+  font-weight: 800;
+}
+
+.hero h1 {
+  margin: 0;
+  max-width: 760px;
+  font-size: clamp(2rem, 4vw, 4rem);
+  line-height: 1.05;
+}
+
+.subtitle {
+  max-width: 680px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.app-card {
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  backdrop-filter: blur(14px);
+}
+
+.category-panel {
+  display: flex;
+  gap: 12px;
+  padding: 24px;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.category-button {
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+.category-button:hover,
+.category-button:focus-visible {
+  transform: translateY(-1px);
+}
+
+.category-button.active {
+  background: var(--accent);
+  color: white;
+  border-color: transparent;
+}
+
+.quiz-layout {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+}
+
+.word-panel,
+.options-panel {
+  padding: 32px 28px 36px;
+}
+
+.word-panel {
+  border-right: 1px solid var(--line);
+}
+
+#word {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  line-height: 0.96;
+}
+
+.pronunciation {
+  margin: 12px 0 20px;
+  color: var(--muted);
+  font-size: 1.15rem;
+}
+
+.hint {
+  margin: 0;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(214, 104, 83, 0.08);
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.options {
+  display: grid;
+  gap: 12px;
+}
+
+.option-button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 20px;
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.option-button:hover,
+.option-button:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(214, 104, 83, 0.45);
+  box-shadow: 0 14px 28px rgba(23, 50, 36, 0.08);
+}
+
+.option-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: 12px;
+  border-radius: 50%;
+  background: rgba(23, 50, 36, 0.08);
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+}
+
+.option-text {
+  display: inline;
+  vertical-align: middle;
+  line-height: 1.6;
+}
+
+.result {
+  min-height: 96px;
+  margin-top: 18px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(23, 50, 36, 0.05);
+  line-height: 1.7;
+}
+
+.result.success {
+  color: var(--success);
+  background: rgba(31, 122, 77, 0.1);
+}
+
+.result.error {
+  color: var(--error);
+  background: rgba(180, 35, 24, 0.08);
+}
+
+.result strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 860px) {
+  .quiz-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .word-panel {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 540px) {
+  .page-shell {
+    width: min(100% - 20px, 1120px);
+    padding-top: 24px;
+  }
+
+  .word-panel,
+  .options-panel,
+  .category-panel {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .category-button {
+    width: 100%;
+  }
+}
