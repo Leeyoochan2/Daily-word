@@ -222,11 +222,155 @@ const WORDS = {
   ]
 };
 
+const TEST_WORDS = [
+  {
+    level: "toeic",
+    word: "invoice",
+    pronunciation: "/IN-voys/",
+    correct: "송장, 청구서",
+    distractors: ["회의록", "입사 지원서", "출장 일정표"]
+  },
+  {
+    level: "toeic",
+    word: "deadline",
+    pronunciation: "/DED-line/",
+    correct: "마감 기한",
+    distractors: ["휴가 기간", "업무 분담", "회의 순서"]
+  },
+  {
+    level: "toeic",
+    word: "renovate",
+    pronunciation: "/REN-uh-vayt/",
+    correct: "보수하다, 개조하다",
+    distractors: ["수출하다", "연기하다", "기록하다"]
+  },
+  {
+    level: "toeic",
+    word: "commute",
+    pronunciation: "/kuh-MYOOT/",
+    correct: "통근하다",
+    distractors: ["계약하다", "상담하다", "정산하다"]
+  },
+  {
+    level: "toeic",
+    word: "merchandise",
+    pronunciation: "/MUR-chuhn-dyse/",
+    correct: "상품, 제품",
+    distractors: ["예산안", "인사평가", "지사장"]
+  },
+  {
+    level: "toeic",
+    word: "reimburse",
+    pronunciation: "/ree-im-BURS/",
+    correct: "변제하다, 상환하다",
+    distractors: ["승진시키다", "배치하다", "연장하다"]
+  },
+  {
+    level: "toeic",
+    word: "shipment",
+    pronunciation: "/SHIP-muhnt/",
+    correct: "선적, 배송품",
+    distractors: ["계산서", "직급", "환율"]
+  },
+  {
+    level: "toeic",
+    word: "supervisor",
+    pronunciation: "/SOO-per-vy-zer/",
+    correct: "관리자, 감독관",
+    distractors: ["거래처", "서명란", "휴게실"]
+  },
+  {
+    level: "csat",
+    word: "resilient",
+    pronunciation: "/ri-ZIL-yuhnt/",
+    correct: "회복력이 있는",
+    distractors: ["은밀한", "무관심한", "즉흥적인"]
+  },
+  {
+    level: "csat",
+    word: "conserve",
+    pronunciation: "/kuhn-SURV/",
+    correct: "보존하다, 아끼다",
+    distractors: ["확장하다", "분리하다", "과장하다"]
+  },
+  {
+    level: "csat",
+    word: "novel",
+    pronunciation: "/NOV-uhl/",
+    correct: "새로운, 참신한",
+    distractors: ["복잡한", "전통적인", "값비싼"]
+  },
+  {
+    level: "csat",
+    word: "trigger",
+    pronunciation: "/TRIG-er/",
+    correct: "유발하다, 촉발하다",
+    distractors: ["숨기다", "무시하다", "축소하다"]
+  },
+  {
+    level: "csat",
+    word: "allocate",
+    pronunciation: "/AL-uh-kayt/",
+    correct: "할당하다, 배분하다",
+    distractors: ["암기하다", "철회하다", "관찰하다"]
+  },
+  {
+    level: "csat",
+    word: "coherent",
+    pronunciation: "/koh-HEER-uhnt/",
+    correct: "일관성 있는, 조리 있는",
+    distractors: ["우울한", "의도적인", "일시적인"]
+  },
+  {
+    level: "csat",
+    word: "compel",
+    pronunciation: "/kuhm-PEL/",
+    correct: "강요하다",
+    distractors: ["위로하다", "예측하다", "제안하다"]
+  },
+  {
+    level: "csat",
+    word: "deteriorate",
+    pronunciation: "/dih-TEER-ee-uh-rayt/",
+    correct: "악화되다",
+    distractors: ["발전하다", "분석하다", "적응하다"]
+  },
+  {
+    level: "gre",
+    word: "abstruse",
+    pronunciation: "/ab-STROOS/",
+    correct: "난해한",
+    distractors: ["매력적인", "실용적인", "평온한"]
+  },
+  {
+    level: "gre",
+    word: "laconic",
+    pronunciation: "/luh-KON-ik/",
+    correct: "간결한, 말수가 적은",
+    distractors: ["장황한", "공격적인", "낙관적인"]
+  },
+  {
+    level: "gre",
+    word: "obdurate",
+    pronunciation: "/OB-duh-rit/",
+    correct: "완고한, 고집 센",
+    distractors: ["관대한", "신중한", "즉각적인"]
+  },
+  {
+    level: "gre",
+    word: "pellucid",
+    pronunciation: "/puh-LOO-sid/",
+    correct: "명료한, 투명한",
+    distractors: ["불규칙한", "비밀스러운", "격렬한"]
+  }
+];
+
 const NEWS_FALLBACKS = [
   {
     sourceName: "BBC News",
     articleTitle: "Global coalition seeks broader climate financing push",
     articleUrl: "https://www.bbc.com/news",
+    publishedAt: "2026-04-12",
     excerpt:
       "Officials said the coalition of donor countries and development banks would meet again next month as negotiators pressed for a more durable funding package.",
     word: "coalition"
@@ -235,6 +379,7 @@ const NEWS_FALLBACKS = [
     sourceName: "The New York Times",
     articleTitle: "Markets stay volatile as investors weigh new signals",
     articleUrl: "https://www.nytimes.com/section/todayspaper",
+    publishedAt: "2026-04-14",
     excerpt:
       "Analysts warned that trading could remain volatile after the latest policy comments, with investors revising expectations several times over the day.",
     word: "volatile"
@@ -243,6 +388,7 @@ const NEWS_FALLBACKS = [
     sourceName: "BBC News",
     articleTitle: "Aid groups report surge in emergency requests",
     articleUrl: "https://www.bbc.com/news",
+    publishedAt: "2026-04-10",
     excerpt:
       "Relief agencies described a surge in requests for shelter and food after heavy rain disrupted transport routes across several districts.",
     word: "surge"
@@ -258,6 +404,32 @@ function getDateKey() {
   });
 
   return formatter.format(new Date());
+}
+
+function normalizeArticleDate(value) {
+  const normalized = String(value || "").trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const directMatch = normalized.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+  if (directMatch) {
+    return `${directMatch[1]}.${directMatch[2]}.${directMatch[3]}`;
+  }
+
+  const parsed = new Date(normalized);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  const year = String(parsed.getUTCFullYear());
+  const month = String(parsed.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getUTCDate()).padStart(2, "0");
+
+  return `${year}.${month}.${day}`;
 }
 
 function hashSeed(input) {
@@ -331,6 +503,21 @@ function buildStandardQuestion(category, dateKey) {
     correctLabel: built.correctLabel,
     correctText: built.correctText
   };
+}
+
+function buildPlacementTest() {
+  return TEST_WORDS.map((entry, index) => {
+    const built = buildOptions(entry, `placement-test:${index + 1}`);
+
+    return {
+      number: index + 1,
+      level: entry.level,
+      word: entry.word,
+      pronunciation: entry.pronunciation,
+      options: built.options,
+      correctLabel: built.correctLabel
+    };
+  });
 }
 
 function escapeHtml(value) {
@@ -441,6 +628,7 @@ function buildNewsQuestionFromEntry(baseEntry, article, dateKey, mode) {
     articleTitle: article.articleTitle,
     articleUrl: article.articleUrl,
     sourceName: article.sourceName,
+    articleDate: normalizeArticleDate(article.publishedAt),
     contextHtml: highlightWord(article.excerpt, baseEntry.word),
     mode
   };
@@ -466,7 +654,8 @@ async function tryBuildNytNewsQuestion(dateKey) {
       sourceName: "The New York Times",
       articleTitle: item.title || "Top Story",
       articleUrl: item.url || "https://www.nytimes.com/",
-      excerpt: item.abstract || item.title || ""
+      excerpt: item.abstract || item.title || "",
+      publishedAt: item.published_date || ""
     }))
     .filter((item) => item.excerpt);
 
@@ -490,7 +679,8 @@ async function tryBuildBbcNewsQuestion(dateKey) {
     sourceName: "BBC News",
     articleTitle: item.title || "Latest story",
     articleUrl: item.link || "https://www.bbc.com/news",
-    excerpt: item.description || item.title || ""
+    excerpt: item.description || item.title || "",
+    publishedAt: item.pubDate || ""
   }));
 
   for (const item of items) {
@@ -531,6 +721,13 @@ async function buildNewsQuestion(dateKey) {
 
 async function getCategoryQuestion(category) {
   const key = String(category || "").toLowerCase();
+
+  if (key === "test") {
+    return {
+      category: "test",
+      questions: buildPlacementTest()
+    };
+  }
 
   if (!WORDS[key]) {
     return null;
@@ -636,8 +833,26 @@ const server = http.createServer(async (request, response) => {
       sourceName: question.sourceName || null,
       articleTitle: question.articleTitle || null,
       articleUrl: question.articleUrl || null,
+      articleDate: question.articleDate || null,
       contextHtml: question.contextHtml || null,
       mode: question.mode || null
+    });
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/api/test") {
+    const test = await getCategoryQuestion("test");
+
+    sendJson(response, 200, {
+      category: test.category,
+      totalQuestions: test.questions.length,
+      questions: test.questions.map((question) => ({
+        number: question.number,
+        level: question.level,
+        word: question.word,
+        pronunciation: question.pronunciation,
+        options: question.options.map(({ label, text }) => ({ label, text }))
+      }))
     });
     return;
   }
@@ -670,6 +885,48 @@ const server = http.createServer(async (request, response) => {
         selectedText: selected.text,
         correctLabel: question.correctLabel,
         correctText: question.correctText
+      });
+    } catch (error) {
+      sendJson(response, 400, { error: "Invalid request body" });
+    }
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/test/submit") {
+    try {
+      const body = await readBody(request);
+      const payload = JSON.parse(body || "{}");
+      const submittedAnswers = Array.isArray(payload.answers) ? payload.answers : [];
+      const test = await getCategoryQuestion("test");
+
+      const answerMap = new Map(
+        submittedAnswers.map((entry) => [Number(entry.number), String(entry.selectedLabel || "").toUpperCase()])
+      );
+
+      let score = 0;
+
+      test.questions.forEach((question) => {
+        if (answerMap.get(question.number) === question.correctLabel) {
+          score += 1;
+        }
+      });
+
+      let recommendedCategory = "toeic";
+      let recommendationMessage = "기초부터 넓히기 좋으니 TOEIC 단어부터 시작해보세요.";
+
+      if (score >= 16) {
+        recommendedCategory = "gre";
+        recommendationMessage = "상위 난도까지 대응 가능하니 GRE 단어에 도전해보세요.";
+      } else if (score >= 10) {
+        recommendedCategory = "csat";
+        recommendationMessage = "중상급 기본기가 있으니 수능 단어를 추천합니다.";
+      }
+
+      sendJson(response, 200, {
+        score,
+        totalQuestions: test.questions.length,
+        recommendedCategory,
+        recommendationMessage
       });
     } catch (error) {
       sendJson(response, 400, { error: "Invalid request body" });
