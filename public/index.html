@@ -16,18 +16,19 @@
     <div class="page-shell">
       <header class="hero">
         <p class="eyebrow">Daily Word Test</p>
-        <h1>매일 한 문제씩, 카테고리별 영어 단어 테스트</h1>
+        <h1>매일 한 문제씩, 영어단어 테스트</h1>
         <p class="subtitle">
-          GRE, TOEIC, 수능 중 하나를 선택하면 오늘의 단어와 영영 풀이 4지선다가
-          나타납니다.
+          GRE, TOEIC, 수능, NEWS 중 하나를 선택하면 오늘의 단어와 4지선다 문제가
+          표시됩니다.
         </p>
       </header>
 
       <main class="app-card">
         <section class="category-panel">
-          <button class="category-button active" data-category="gre">GRE 수준</button>
-          <button class="category-button" data-category="toeic">TOEIC 수준</button>
-          <button class="category-button" data-category="csat">수능 수준</button>
+          <button class="category-button active" data-category="gre">GRE 단어</button>
+          <button class="category-button" data-category="toeic">TOEIC 단어</button>
+          <button class="category-button" data-category="csat">수능 단어</button>
+          <button class="category-button" data-category="news">NEWS</button>
         </section>
 
         <section class="quiz-layout">
@@ -35,9 +36,19 @@
             <p class="panel-label">오늘의 단어</p>
             <h2 id="word">Loading...</h2>
             <p id="pronunciation" class="pronunciation"></p>
-            <p class="hint">
-              왼쪽 단어를 보고 오른쪽 영영사전 풀이 중 가장 알맞은 뜻을 고르세요.
+            <p class="hint" id="hint">
+              왼쪽 단어를 보고 오른쪽 영어 뜻 중 가장 알맞은 것을 고르세요.
             </p>
+
+            <article id="news-card" class="news-card hidden">
+              <p class="panel-label">기사 발췌</p>
+              <h3 id="article-title" class="article-title"></h3>
+              <p id="article-meta" class="article-meta"></p>
+              <p id="news-context" class="news-context"></p>
+              <a id="article-link" class="article-link" href="#" target="_blank" rel="noreferrer">
+                원문 보기
+              </a>
+            </article>
           </div>
 
           <div class="options-panel">

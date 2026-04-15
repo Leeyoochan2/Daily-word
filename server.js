@@ -1,3 +1,5 @@
+// Daily Word Test backend:
+// serves the static UI and returns one deterministic quiz per category each day.
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -6,7 +8,9 @@ const { URL } = require("url");
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
 const SEOUL_TIMEZONE = "Asia/Seoul";
+const QUESTION_CACHE = new Map();
 
+// Each category uses a small built-in word pool.
 const WORDS = {
   gre: [
     {
@@ -163,8 +167,87 @@ const WORDS = {
         "to memorize facts very quickly"
       ]
     }
+  ],
+  news: [
+    {
+      word: "sanction",
+      pronunciation: "/SANGK-shuhn/",
+      correct: "an official action taken to penalize or pressure a country or group",
+      distractors: [
+        "a private meeting held in secret",
+        "a scientific claim not yet tested",
+        "a reward given for excellent service"
+      ]
+    },
+    {
+      word: "coalition",
+      pronunciation: "/koh-uh-LISH-uhn/",
+      correct: "a temporary alliance formed for a shared goal",
+      distractors: [
+        "a sudden drop in financial markets",
+        "a record of personal memories",
+        "a device used to monitor weather"
+      ]
+    },
+    {
+      word: "volatile",
+      pronunciation: "/VOL-uh-tl/",
+      correct: "likely to change suddenly and unpredictably",
+      distractors: [
+        "carefully documented and archived",
+        "designed for long-term stability",
+        "limited to one local region"
+      ]
+    },
+    {
+      word: "surge",
+      pronunciation: "/SURJ/",
+      correct: "a sudden and strong increase",
+      distractors: [
+        "a formal statement of apology",
+        "a long period of calm",
+        "an informal social gathering"
+      ]
+    },
+    {
+      word: "pledge",
+      pronunciation: "/PLEJ/",
+      correct: "a serious public promise to do something",
+      distractors: [
+        "a brief delay caused by traffic",
+        "a chart showing weather patterns",
+        "a machine used in construction"
+      ]
+    }
   ]
 };
+
+const NEWS_FALLBACKS = [
+  {
+    sourceName: "BBC News",
+    articleTitle: "Global coalition seeks broader climate financing push",
+    articleUrl: "https://www.bbc.com/news",
+    excerpt:
+      "Officials said the coalition of donor countries and development banks would meet again next month as negotiators pressed for a more durable funding package.",
+    word: "coalition"
+  },
+  {
+    sourceName: "The New York Times",
+    articleTitle: "Markets stay volatile as investors weigh new signals",
+    articleUrl: "https://www.nytimes.com/section/todayspaper",
+    excerpt:
+      "Analysts warned that trading could remain volatile after the latest policy comments, with investors revising expectations several times over the day.",
+    word: "volatile"
+  },
+  {
+    sourceName: "BBC News",
+    articleTitle: "Aid groups report surge in emergency requests",
+    articleUrl: "https://www.bbc.com/news",
+    excerpt:
+      "Relief agencies described a surge in requests for shelter and food after heavy rain disrupted transport routes across several districts.",
+    word: "surge"
+  }
+];
 
 function getDateKey() {
   const formatter = new Intl.DateTimeFormat("en-CA", {
@@ -208,18 +291,7 @@ function shuffle(items, seedText) {
   return array;
 }
 
-function getCategoryQuestion(category) {
-  const key = String(category || "").toLowerCase();
-  const pool = WORDS[key];
-
-  if (!pool) {
-    return null;
-  }
-
-  const dateKey = getDateKey();
-  const wordIndex = hashSeed(`${key}:${dateKey}:word`) % pool.length;
-  const entry = pool[wordIndex];
-
+function buildOptions(entry, seedText) {
   const options = shuffle(
     [
       { id: "correct", text: entry.correct },
@@ -228,7 +300,7 @@ function getCategoryQuestion(category) {
         text
       }))
     ],
-    `${key}:${dateKey}:options`
+    seedText
   ).map((option, index) => ({
     label: String.fromCharCode(65 + index),
     id: option.id,
@@ -238,14 +310,245 @@ function getCategoryQuestion(category) {
   const correctOption = options.find((option) => option.id === "correct");
 
   return {
-    category: key,
-    dateKey,
-    word: entry.word,
-    pronunciation: entry.pronunciation,
     options,
     correctLabel: correctOption.label,
     correctText: correctOption.text
   };
+}
+
+function buildStandardQuestion(category, dateKey) {
+  const pool = WORDS[category];
+  const wordIndex = hashSeed(`${category}:${dateKey}:word`) % pool.length;
+  const entry = pool[wordIndex];
+  const built = buildOptions(entry, `${category}:${dateKey}:options`);
+
+  return {
+    category,
+    dateKey,
+    word: entry.word,
+    pronunciation: entry.pronunciation,
+    options: built.options,
+    correctLabel: built.correctLabel,
+    correctText: built.correctText
+  };
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function decodeEntities(value) {
+  return String(value)
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/gi, "'")
+    .replace(/&#8217;/g, "'")
+    .replace(/&#8211;/g, "-")
+    .replace(/&#8230;/g, "...");
+}
+
+function stripTags(value) {
+  return decodeEntities(String(value).replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
+}
+
+function highlightWord(text, word) {
+  const safe = escapeHtml(text);
+  const matcher = new RegExp(`\\b(${word})\\b`, "i");
+  return safe.replace(matcher, '<u class="news-underline">$1</u>');
+}
+
+function pickDeterministicItem(items, seedText) {
+  return items[hashSeed(seedText) % items.length];
+}
+
+function parseRssItems(xmlText) {
+  const matches = [...xmlText.matchAll(/<item>([\s\S]*?)<\/item>/gi)];
+
+  return matches.map((match) => {
+    const itemXml = match[1];
+
+    const getTag = (tagName) => {
+      const tagMatch = itemXml.match(new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, "i"));
+      return tagMatch ? stripTags(tagMatch[1]) : "";
+    };
+
+    return {
+      title: getTag("title"),
+      description: getTag("description"),
+      link: getTag("link"),
+      pubDate: getTag("pubDate")
+    };
+  });
+}
+
+function findNewsWordMatch(text) {
+  const normalized = String(text || "");
+
+  return WORDS.news.find((entry) => {
+    const matcher = new RegExp(`\\b${entry.word}\\b`, "i");
+    return matcher.test(normalized);
+  });
+}
+
+async function fetchJson(url) {
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "DailyWordTest/1.0"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch JSON: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function fetchText(url) {
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "DailyWordTest/1.0"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch text: ${response.status}`);
+  }
+
+  return response.text();
+}
+
+function buildNewsQuestionFromEntry(baseEntry, article, dateKey, mode) {
+  const built = buildOptions(baseEntry, `news:${dateKey}:${baseEntry.word}`);
+
+  return {
+    category: "news",
+    dateKey,
+    word: baseEntry.word,
+    pronunciation: baseEntry.pronunciation,
+    options: built.options,
+    correctLabel: built.correctLabel,
+    correctText: built.correctText,
+    articleTitle: article.articleTitle,
+    articleUrl: article.articleUrl,
+    sourceName: article.sourceName,
+    contextHtml: highlightWord(article.excerpt, baseEntry.word),
+    mode
+  };
+}
+
+function buildFallbackNewsQuestion(dateKey) {
+  const fallback = pickDeterministicItem(NEWS_FALLBACKS, `news:${dateKey}:fallback`);
+  const entry = WORDS.news.find((item) => item.word === fallback.word);
+  return buildNewsQuestionFromEntry(entry, fallback, dateKey, "fallback");
+}
+
+async function tryBuildNytNewsQuestion(dateKey) {
+  if (!process.env.NYT_API_KEY) {
+    return null;
+  }
+
+  const data = await fetchJson(
+    `https://api.nytimes.com/svc/topstories/v2/home.json?api-key=${encodeURIComponent(process.env.NYT_API_KEY)}`
+  );
+
+  const candidates = (data.results || [])
+    .map((item) => ({
+      sourceName: "The New York Times",
+      articleTitle: item.title || "Top Story",
+      articleUrl: item.url || "https://www.nytimes.com/",
+      excerpt: item.abstract || item.title || ""
+    }))
+    .filter((item) => item.excerpt);
+
+  for (const item of candidates) {
+    const match = findNewsWordMatch(`${item.articleTitle} ${item.excerpt}`);
+
+    if (match) {
+      return buildNewsQuestionFromEntry(match, item, dateKey, "nyt-api");
+    }
+  }
+
+  return null;
+}
+
+async function tryBuildBbcNewsQuestion(dateKey) {
+  const xml = await fetchText(
+    "http://news.bbc.co.uk/rss/newsonline_uk_edition/latest_published_stories/rss.xml"
+  );
+
+  const items = parseRssItems(xml).map((item) => ({
+    sourceName: "BBC News",
+    articleTitle: item.title || "Latest story",
+    articleUrl: item.link || "https://www.bbc.com/news",
+    excerpt: item.description || item.title || ""
+  }));
+
+  for (const item of items) {
+    const match = findNewsWordMatch(`${item.articleTitle} ${item.excerpt}`);
+
+    if (match) {
+      return buildNewsQuestionFromEntry(match, item, dateKey, "bbc-rss");
+    }
+  }
+
+  return null;
+}
+
+// NEWS tries live sources first and falls back to bundled sample articles.
+async function buildNewsQuestion(dateKey) {
+  try {
+    const nytQuestion = await tryBuildNytNewsQuestion(dateKey);
+
+    if (nytQuestion) {
+      return nytQuestion;
+    }
+  } catch (error) {
+    console.error("NYT news fetch failed:", error.message);
+  }
+
+  try {
+    const bbcQuestion = await tryBuildBbcNewsQuestion(dateKey);
+
+    if (bbcQuestion) {
+      return bbcQuestion;
+    }
+  } catch (error) {
+    console.error("BBC news fetch failed:", error.message);
+  }
+
+  return buildFallbackNewsQuestion(dateKey);
+}
+
+async function getCategoryQuestion(category) {
+  const key = String(category || "").toLowerCase();
+
+  if (!WORDS[key]) {
+    return null;
+  }
+
+  const dateKey = getDateKey();
+  const cacheKey = `${key}:${dateKey}`;
+
+  if (QUESTION_CACHE.has(cacheKey)) {
+    return QUESTION_CACHE.get(cacheKey);
+  }
+
+  const question =
+    key === "news" ? await buildNewsQuestion(dateKey) : buildStandardQuestion(key, dateKey);
+
+  QUESTION_CACHE.clear();
+  QUESTION_CACHE.set(cacheKey, question);
+  return question;
 }
 
 function sendJson(response, statusCode, payload) {
@@ -278,6 +581,25 @@ function serveFile(filePath, response) {
   });
 }
 
+function resolvePublicPath(requestPath) {
+  let decodedPath;
+
+  try {
+    decodedPath = decodeURIComponent(requestPath);
+  } catch (error) {
+    return null;
+  }
+
+  const safeRelativePath = decodedPath === "/" ? "index.html" : `.${decodedPath}`;
+  const filePath = path.resolve(PUBLIC_DIR, safeRelativePath);
+
+  if (filePath !== PUBLIC_DIR && !filePath.startsWith(`${PUBLIC_DIR}${path.sep}`)) {
+    return null;
+  }
+
+  return filePath;
+}
+
 function readBody(request) {
   return new Promise((resolve, reject) => {
     let body = "";
@@ -298,7 +620,7 @@ const server = http.createServer(async (request, response) => {
   const url = new URL(request.url, `http://${request.headers.host}`);
 
   if (request.method === "GET" && url.pathname === "/api/question") {
-    const question = getCategoryQuestion(url.searchParams.get("category"));
+    const question = await getCategoryQuestion(url.searchParams.get("category"));
 
     if (!question) {
       sendJson(response, 400, { error: "Invalid category" });
@@ -310,7 +632,12 @@ const server = http.createServer(async (request, response) => {
       dateKey: question.dateKey,
       word: question.word,
       pronunciation: question.pronunciation,
-      options: question.options.map(({ label, text }) => ({ label, text }))
+      options: question.options.map(({ label, text }) => ({ label, text })),
+      sourceName: question.sourceName || null,
+      articleTitle: question.articleTitle || null,
+      articleUrl: question.articleUrl || null,
+      contextHtml: question.contextHtml || null,
+      mode: question.mode || null
     });
     return;
   }
@@ -319,7 +646,7 @@ const server = http.createServer(async (request, response) => {
     try {
       const body = await readBody(request);
       const { category, selectedLabel } = JSON.parse(body || "{}");
-      const question = getCategoryQuestion(category);
+      const question = await getCategoryQuestion(category);
 
       if (!question) {
         sendJson(response, 400, { error: "Invalid category" });
@@ -351,10 +678,10 @@ const server = http.createServer(async (request, response) => {
   }
 
   if (request.method === "GET") {
-    const requestedPath = url.pathname === "/" ? "/index.html" : url.pathname;
-    const filePath = path.join(PUBLIC_DIR, requestedPath);
+    // Only serve files from the public directory.
+    const filePath = resolvePublicPath(url.pathname);
 
-    if (!filePath.startsWith(PUBLIC_DIR)) {
+    if (!filePath) {
       response.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
       response.end("Forbidden");
       return;
